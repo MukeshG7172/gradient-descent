@@ -4,9 +4,7 @@
 
 # Requirements
 
-  Python 3.x
-  NumPy
-  Matplotlib
+  Python 3.x, NumPy, Matplotlib
 
 # Equation
 
@@ -17,9 +15,9 @@
   Gradient Descent Result: m1 = 1.9237, m2 = 1.1872, MSE = 0.8290
 
 # Linear Search Graph
+![linear_search_graph](https://github.com/user-attachments/assets/ed1a2f21-9a31-49ab-bcb0-3a4c085cc7b6)
 
-![linear_search_graph](https://github.com/user-attachments/assets/07c5080c-9e74-4a26-a2f9-e6b2ee3c0d3a)
 
 # Gradient Descent Graph
+![gradient_descent_graph](https://github.com/user-attachments/assets/69bdd05a-ec58-43eb-af42-ce35e3411bf7)
 
-![gradient_descent_graph](https://github.com/user-attachments/assets/7fcb91f3-9833-4618-9425-bc38bffebfae)
