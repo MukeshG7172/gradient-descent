@@ -32,6 +32,7 @@ def plot_search(x, y, points=100):
     plt.figure(figsize=(10, 6))
     plt.plot(slopes, errors)
     plt.scatter(best_slope, best_error, color='red', s=100)
+    
     plt.text(best_slope + 0.5, best_error + 0.1, 
              f'Best: {best_slope:.2f}, {best_intercept:.2f}, MSE: {best_error:.2f}')
     
@@ -47,10 +48,13 @@ def best_intercept(x, y, slope):
     # Get best intercept for given slope
     return np.mean(y - slope * x)
 
-def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=200):
+def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=None):
     # Random starting point
     slope = np.random.uniform(0, 3)
     intercept = np.random.uniform(0, 3)
+    
+    if max_iter is None:
+        max_iter = 1000
     
     slope_history = [slope]
     intercept_history = [intercept]
@@ -58,7 +62,9 @@ def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=200):
     
     # Gradient descent
     iter_count = 0
-    for i in range(max_iter):
+    prev_error = float('inf')
+    
+    while iter_count < max_iter:
         iter_count += 1
         
         # Get prediction and error
@@ -73,12 +79,19 @@ def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=200):
         slope = slope - learn_rate * grad_slope
         intercept = intercept - learn_rate * grad_intercept
         
+        # Calculate current error
+        current_error = calc_error(x, y, slope, intercept)
+        
         slope_history.append(slope)
         intercept_history.append(intercept)
-        error_history.append(calc_error(x, y, slope, intercept))
+        error_history.append(current_error)
+        
+            
+        prev_error = current_error
     
-    # Simple error landscape plot
     plt.figure(figsize=(10, 6))
+    
+    # Set plot range
     slopes = np.linspace(0, 5, 100)
     errors = []
     
@@ -99,11 +112,12 @@ def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=200):
     plt.scatter(slope_history, path_errors, color='red')
     plt.scatter(slope_history[0], path_errors[0], color='green', s=100)
     plt.scatter(slope_history[-1], path_errors[-1], color='purple', s=100)
+    
     plt.text(slope_history[0] + 0.3, path_errors[0] + 0.2, 
              f'Start: {slope_history[0]:.2f}, {intercept_history[0]:.2f}')
     
     plt.text(slope_history[-1] + 0.3, path_errors[-1] - 0.2, 
-             f'End: {slope_history[-1]:.2f}, {intercept_history[-1]:.2f}')
+             f'End: {slope_history[-1]:.2f}, {intercept_history[-1]:.2f}, Epochs: {iter_count}')
     
     plt.xlabel('Slope')
     plt.ylabel('Error')
@@ -118,18 +132,18 @@ def main(seed=42):
     
     x, y = make_data(size=50, slope=2.0, intercept=1.0, seed=seed)
     
-    # Linear search
+    # Run linear search
     ls_slope, ls_intercept, ls_error = plot_search(x, y)
     print(f"Linear Search: slope = {ls_slope:.4f}, intercept = {ls_intercept:.4f}, MSE = {ls_error:.4f}")
     
-    # Gradient descent
-    gd_slope, gd_intercept, gd_error, iters = plot_gradient_descent(
+    # Run gradient descent with dynamic epochs
+    gd_slope, gd_intercept, gd_error, epochs = plot_gradient_descent(
         x, y, 
-        learn_rate=0.01,
-        max_iter=500
+        learn_rate=0.01
     )
     
     print(f"Gradient Descent: slope = {gd_slope:.4f}, intercept = {gd_intercept:.4f}, MSE = {gd_error:.4f}")
+    print(f"Epochs needed: {epochs}")
 
 if __name__ == "__main__":
     main()
