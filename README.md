@@ -4,9 +4,7 @@
 
 # Requirements
 
-  Python 3.x
-  NumPy
-  Matplotlib
+  Python 3.x, NumPy, Matplotlib
 
 # Equation
 
