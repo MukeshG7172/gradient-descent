@@ -1,158 +1,135 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_data(n_samples=100, m1_true=2.0, m2_true=1.0, random_seed=42):
-    # Data with equation y = m1*x + m2 + noise
-    np.random.seed(random_seed)
-    x = np.linspace(0, 10, n_samples)
-    noise = np.random.normal(0, 1, n_samples)
-    y = m1_true * x + m2_true + noise
+def make_data(size=100, slope=2.0, intercept=1.0, seed=42):
+    # Make data with y = slope*x + intercept + noise
+    np.random.seed(seed)
+    x = np.linspace(0, 10, size)
+    noise = np.random.normal(0, 1, size)
+    y = slope * x + intercept + noise
     return x, y
 
-def calculate_mse(x, y, m1, m2):
-    # Calculating MSE
-    y_pred = m1 * x + m2
-    return np.mean((y - y_pred) ** 2)
+def calc_error(x, y, slope, intercept):
+    # Get mean squared error
+    pred = slope * x + intercept
+    return np.mean((y - pred) ** 2)
 
-def plot_linear_search(x, y, m1_range = 0, num_points=100):
-    # Plotting MSE
-    m1_range = np.linspace(0, 5, num_points)
+def plot_search(x, y, points=100):
+    # Search through slope values and plot MSE
+    slopes = np.linspace(0, 5, points)
     
-    # Calculating optimal m2
-    m2_values = np.array([np.mean(y - m1 * x) for m1 in m1_range])
+    # Get best intercept for each slope
+    intercepts = [np.mean(y - m * x) for m in slopes]
+    errors = [calc_error(x, y, m, b) for m, b in zip(slopes, intercepts)]
     
-    # Calculating MSE for each (m1, m2) pair
-    mse_values = np.array([calculate_mse(x, y, m1, m2) 
-                          for m1, m2 in zip(m1_range, m2_values)])
+    # Find best values
+    best_idx = np.argmin(errors)
+    best_slope = slopes[best_idx]
+    best_intercept = intercepts[best_idx]
+    best_error = errors[best_idx]
     
-    best_idx = np.argmin(mse_values)
-    best_m1 = m1_range[best_idx]
-    best_m2 = m2_values[best_idx]
-    min_loss = mse_values[best_idx]
-    
-    # Plot Creation
+    # Plotting
     plt.figure(figsize=(10, 6))
-    plt.plot(m1_range, mse_values, 'b-', linewidth=2)
-    plt.scatter(best_m1, min_loss, color='red', s=100, marker='o')
-    plt.annotate(f'Best m1 = {best_m1:.4f}, m2 = {best_m2:.4f}, MSE = {min_loss:.4f}',
-                 xy=(best_m1, min_loss),
-                 xytext=(best_m1 + 0.5, min_loss + 0.1))
+    plt.plot(slopes, errors)
+    plt.scatter(best_slope, best_error, color='red', s=100)
+    plt.text(best_slope + 0.5, best_error + 0.1, 
+             f'Best: {best_slope:.2f}, {best_intercept:.2f}, MSE: {best_error:.2f}')
     
-    plt.xlabel('m1 values')
-    plt.ylabel('MSE')
+    plt.xlabel('Slope')
+    plt.ylabel('Error')
     plt.title('Linear Search')
     plt.savefig('linear_search_graph.png')
     plt.show()
     
-    return best_m1, best_m2, min_loss
+    return best_slope, best_intercept, best_error
 
-def optimal_m2_for_m1(x, y, m1):
-    # Calculating optimal m2
-    return np.mean(y - m1 * x)
+def best_intercept(x, y, slope):
+    # Get best intercept for given slope
+    return np.mean(y - slope * x)
 
-def create_mse_landscape(x, y, m1_range):
-    # Plotting MSE
-    m2_optimal = np.array([optimal_m2_for_m1(x, y, m1) for m1 in m1_range])
-    mse_values = np.array([calculate_mse(x, y, m1, m2) for m1, m2 in zip(m1_range, m2_optimal)])
-    return m2_optimal, mse_values
-
-def plot_gradient_descent(x, y, initial_m1, initial_m2, learning_rate=0.01, max_iterations=200):
-
-    initial_m1 = np.random.uniform(0, 3)
-    initial_m2 = np.random.uniform(0, 3)
+def plot_gradient_descent(x, y, learn_rate=0.01, max_iter=200):
+    # Random starting point
+    slope = np.random.uniform(0, 3)
+    intercept = np.random.uniform(0, 3)
     
-    # Initializing parameters
-    m1, m2 = initial_m1, initial_m2
+    slope_history = [slope]
+    intercept_history = [intercept]
+    error_history = [calc_error(x, y, slope, intercept)]
     
-    # Trajectory
-    m1_history = [m1]
-    m2_history = [m2]
-    mse_history = [calculate_mse(x, y, m1, m2)]
+    # Gradient descent
+    iter_count = 0
+    for i in range(max_iter):
+        iter_count += 1
+        
+        # Get prediction and error
+        pred = slope * x + intercept
+        error = y - pred
+        
+        # Calculate gradients
+        grad_slope = -2 * np.mean(x * error)
+        grad_intercept = -2 * np.mean(error)
+        
+        # Update parameters
+        slope = slope - learn_rate * grad_slope
+        intercept = intercept - learn_rate * grad_intercept
+        
+        slope_history.append(slope)
+        intercept_history.append(intercept)
+        error_history.append(calc_error(x, y, slope, intercept))
     
-    # Perform GD
-    iterations_performed = 0
-    for iteration in range(max_iterations):
-        iterations_performed += 1
-        
-        # Calculating predictions and error
-        y_pred = m1 * x + m2
-        error = y - y_pred
-        
-        # Calculating gradients
-        gradient_m1 = -2 * np.mean(x * error)
-        gradient_m2 = -2 * np.mean(error)
-        
-        # Parameters
-        m1_new = m1 - learning_rate * gradient_m1
-        m2_new = m2 - learning_rate * gradient_m2
-        
-        # Calculating MSE
-        new_mse = calculate_mse(x, y, m1_new, m2_new)
-        
-        m1, m2 = m1_new, m2_new
-        m1_history.append(m1)
-        m2_history.append(m2)
-        mse_history.append(new_mse)
-        
-    
-    # Visualization
+    # Simple error landscape plot
     plt.figure(figsize=(10, 6))
+    slopes = np.linspace(0, 5, 100)
+    errors = []
     
-    m1_min = min(0, min(m1_history) - 0.5)
-    m1_max = max(5, max(m1_history) + 0.5)
-    m1_range = np.linspace(m1_min, m1_max, 100)
+    # Calculate error curve
+    for m in slopes:
+        b = best_intercept(x, y, m)
+        err = calc_error(x, y, m, b)
+        errors.append(err)
     
-    _, optimal_mse_values = create_mse_landscape(x, y, m1_range)
+    plt.plot(slopes, errors)
     
-    optimal_trajectory_mse = []
-    for m1_val in m1_history:
-        optimal_m2 = optimal_m2_for_m1(x, y, m1_val)
-        optimal_mse = calculate_mse(x, y, m1_val, optimal_m2)
-        optimal_trajectory_mse.append(optimal_mse)
+    # Plot GD path
+    path_errors = []
+    for m in slope_history:
+        b = best_intercept(x, y, m)
+        path_errors.append(calc_error(x, y, m, b))
     
-    # MSE Plot
-    plt.plot(m1_range, optimal_mse_values, 'b-', label='MSE Landscape', linewidth=2)
-    plt.scatter(m1_history, optimal_trajectory_mse, color='red', s=50, marker='o', label='GD Steps (Projected)')
-    plt.scatter(m1_history[0], optimal_trajectory_mse[0], color='green', s=100, marker='o', label='Start')
-    plt.scatter(m1_history[-1], optimal_trajectory_mse[-1], color='purple', s=100, marker='x', label='End')
-    plt.annotate(f'Start: m1 = {m1_history[0]:.2f}, m2 = {m2_history[0]:.2f}',  xy=(m1_history[0], optimal_trajectory_mse[0]),
-                xytext=(m1_history[0] + 0.3, optimal_trajectory_mse[0] + 0.2))
+    plt.scatter(slope_history, path_errors, color='red')
+    plt.scatter(slope_history[0], path_errors[0], color='green', s=100)
+    plt.scatter(slope_history[-1], path_errors[-1], color='purple', s=100)
+    plt.text(slope_history[0] + 0.3, path_errors[0] + 0.2, 
+             f'Start: {slope_history[0]:.2f}, {intercept_history[0]:.2f}')
     
-    plt.annotate(f'End: m1 = {m1_history[-1]:.4f}, m2 = {m2_history[-1]:.4f}', xy=(m1_history[-1], optimal_trajectory_mse[-1]),
-                xytext=(m1_history[-1] + 0.3, optimal_trajectory_mse[-1] - 0.2))
+    plt.text(slope_history[-1] + 0.3, path_errors[-1] - 0.2, 
+             f'End: {slope_history[-1]:.2f}, {intercept_history[-1]:.2f}')
     
-    plt.xlabel('m1 values')
-    plt.ylabel('MSE')
-    plt.title(f'Gradient Descent')
-    plt.legend()
+    plt.xlabel('Slope')
+    plt.ylabel('Error')
+    plt.title('Gradient Descent')
     plt.savefig('gradient_descent_graph.png')
     plt.show()
     
-    return m1_history[-1], m2_history[-1], mse_history[-1], iterations_performed
+    return slope_history[-1], intercept_history[-1], error_history[-1], iter_count
 
-def main(random_seed=42):
-    np.random.seed(random_seed)
+def main(seed=42):
+    np.random.seed(seed)
     
-    # Generate data
-    x, y = generate_data(n_samples=50, m1_true=2.0, m2_true=1.0, random_seed=random_seed)
+    x, y = make_data(size=50, slope=2.0, intercept=1.0, seed=seed)
     
     # Linear search
-    ls_m1, ls_m2, ls_loss = plot_linear_search(x, y)
-    print(f"Linear Search Result: m1 = {ls_m1:.4f}, m2 = {ls_m2:.4f}, MSE = {ls_loss:.4f}")
+    ls_slope, ls_intercept, ls_error = plot_search(x, y)
+    print(f"Linear Search: slope = {ls_slope:.4f}, intercept = {ls_intercept:.4f}, MSE = {ls_error:.4f}")
     
-    # Gradient descent with random initialization
-    initial_m1 = np.random.uniform(0, 3)
-    initial_m2 = np.random.uniform(0, 3)
-    
-    gd_m1, gd_m2, gd_loss, iterations = plot_gradient_descent(
+    # Gradient descent
+    gd_slope, gd_intercept, gd_error, iters = plot_gradient_descent(
         x, y, 
-        initial_m1=initial_m1,
-        initial_m2=initial_m2,
-        learning_rate=0.01,
-        max_iterations=500
+        learn_rate=0.01,
+        max_iter=500
     )
     
-    print(f"Gradient Descent Result: m1 = {gd_m1:.4f}, m2 = {gd_m2:.4f}, MSE = {gd_loss:.4f}")
+    print(f"Gradient Descent: slope = {gd_slope:.4f}, intercept = {gd_intercept:.4f}, MSE = {gd_error:.4f}")
 
 if __name__ == "__main__":
     main()
