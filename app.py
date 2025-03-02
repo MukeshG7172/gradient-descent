@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_data(n_samples=50, m1_true=2.0, m2_true=1.0, random_seed=42):
+def generate_data(n_samples=100, m1_true=2.0, m2_true=1.0, random_seed=42):
     # Data with equation y = m1*x + m2 + noise
     np.random.seed(random_seed)
     x = np.linspace(0, 10, n_samples)
