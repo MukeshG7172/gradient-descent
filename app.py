@@ -14,10 +14,9 @@ def calculate_mse(x, y, m1, m2):
     y_pred = m1 * x + m2
     return np.mean((y - y_pred) ** 2)
 
-def plot_linear_search(x, y, m1_range=None, num_points=100):
+def plot_linear_search(x, y, m1_range = 0, num_points=100):
     # Plotting MSE
-    if m1_range is None:
-        m1_range = np.linspace(0, 5, num_points)
+    m1_range = np.linspace(0, 5, num_points)
     
     # Calculating optimal m2
     m2_values = np.array([np.mean(y - m1 * x) for m1 in m1_range])
@@ -41,7 +40,7 @@ def plot_linear_search(x, y, m1_range=None, num_points=100):
     
     plt.xlabel('m1 values')
     plt.ylabel('MSE')
-    plt.title('MSE vs m1 (with optimal m2 for each m1)')
+    plt.title('Linear Search')
     plt.savefig('linear_search_graph.png')
     plt.show()
     
@@ -54,19 +53,13 @@ def optimal_m2_for_m1(x, y, m1):
 def create_mse_landscape(x, y, m1_range):
     # Plotting MSE
     m2_optimal = np.array([optimal_m2_for_m1(x, y, m1) for m1 in m1_range])
-    mse_values = np.array([calculate_mse(x, y, m1, m2) 
-                          for m1, m2 in zip(m1_range, m2_optimal)])
+    mse_values = np.array([calculate_mse(x, y, m1, m2) for m1, m2 in zip(m1_range, m2_optimal)])
     return m2_optimal, mse_values
 
-def plot_gradient_descent(x, y, initial_m1=None, initial_m2=None, 
-                          learning_rate=0.01, max_iterations=None, 
-                          convergence_threshold=1e-6):
-    if initial_m1 is None:
-        initial_m1 = np.random.uniform(0, 3)
-    if initial_m2 is None:
-        initial_m2 = np.random.uniform(0, 3)
-    if max_iterations is None:
-        max_iterations = 200
+def plot_gradient_descent(x, y, initial_m1, initial_m2, learning_rate=0.01, max_iterations=200):
+
+    initial_m1 = np.random.uniform(0, 3)
+    initial_m2 = np.random.uniform(0, 3)
     
     # Initializing parameters
     m1, m2 = initial_m1, initial_m2
@@ -101,9 +94,6 @@ def plot_gradient_descent(x, y, initial_m1=None, initial_m2=None,
         m2_history.append(m2)
         mse_history.append(new_mse)
         
-        # Check for convergence
-        if iteration > 0 and abs(new_mse - mse_history[-2]) < convergence_threshold:
-            break
     
     # Visualization
     plt.figure(figsize=(10, 6))
@@ -125,17 +115,15 @@ def plot_gradient_descent(x, y, initial_m1=None, initial_m2=None,
     plt.scatter(m1_history, optimal_trajectory_mse, color='red', s=50, marker='o', label='GD Steps (Projected)')
     plt.scatter(m1_history[0], optimal_trajectory_mse[0], color='green', s=100, marker='o', label='Start')
     plt.scatter(m1_history[-1], optimal_trajectory_mse[-1], color='purple', s=100, marker='x', label='End')
-    plt.annotate(f'Start: m1 = {m1_history[0]:.2f}, m2 = {m2_history[0]:.2f}', 
-                xy=(m1_history[0], optimal_trajectory_mse[0]),
+    plt.annotate(f'Start: m1 = {m1_history[0]:.2f}, m2 = {m2_history[0]:.2f}',  xy=(m1_history[0], optimal_trajectory_mse[0]),
                 xytext=(m1_history[0] + 0.3, optimal_trajectory_mse[0] + 0.2))
     
-    plt.annotate(f'End: m1 = {m1_history[-1]:.4f}, m2 = {m2_history[-1]:.4f}', 
-                xy=(m1_history[-1], optimal_trajectory_mse[-1]),
+    plt.annotate(f'End: m1 = {m1_history[-1]:.4f}, m2 = {m2_history[-1]:.4f}', xy=(m1_history[-1], optimal_trajectory_mse[-1]),
                 xytext=(m1_history[-1] + 0.3, optimal_trajectory_mse[-1] - 0.2))
     
     plt.xlabel('m1 values')
     plt.ylabel('MSE')
-    plt.title(f'Gradient Descent: {iterations_performed} iterations')
+    plt.title(f'Gradient Descent')
     plt.legend()
     plt.savefig('gradient_descent_graph.png')
     plt.show()
@@ -161,8 +149,7 @@ def main(random_seed=42):
         initial_m1=initial_m1,
         initial_m2=initial_m2,
         learning_rate=0.01,
-        max_iterations=500,
-        convergence_threshold=1e-6
+        max_iterations=500
     )
     
     print(f"Gradient Descent Result: m1 = {gd_m1:.4f}, m2 = {gd_m2:.4f}, MSE = {gd_loss:.4f}")
